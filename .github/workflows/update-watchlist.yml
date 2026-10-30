@@ -1,0 +1,30 @@
+name: Update Watchlist
+
+on:
+  schedule:
+    # UTC 22:30 = 台灣時間 06:30, 週一至週五
+    - cron: "30 22 * * 0-4"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "只試跑, 不寫入 Google Sheet"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Update watchlist
+        env:
+          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+          GOOGLE_CREDS_JSON: ${{ secrets.GOOGLE_CREDS_JSON }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          POOL_SIZE: "40"
+        run: uv run --no-project --with gspread python scripts/update_watchlist.py
